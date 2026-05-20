@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolução - Exercícios Chart.js</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f9f9f9; }
+        .grafico-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .canvas-wrapper { width: 100%; max-width: 700px; height: 350px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; border: none; background: #6366f1; color: white; border-radius: 4px; }
+        button:hover { background: #4f46e5; }
+    </style>
+</head>
+<body>
+
+    <h1>Lista de Exercícios - Chart.js</h1>
+
+    <div class="grafico-container">
+        <h3>1. Gráfico de Barras Simples (Chamados por Categoria)</h3>
+        <div class="canvas-wrapper"><canvas id="ex1"></canvas></div>
+    </div>
+
+    <div class="grafico-container">
+        <h3>2. Doughnut com Legenda (Bug vs Melhoria)</h3>
+        <div class="canvas-wrapper"><canvas id="ex2"></canvas></div>
+    </div>
+
+    <div class="grafico-container">
+        <h3>3. Linha com Preenchimento (Horas por Mês)</h3>
+        <div class="canvas-wrapper"><canvas id="ex3"></canvas></div>
+    </div>
+
+    <div class="grafico-container">
+        <h3>4. Barras Horizontais com Formatação (Tempo Médio por Categoria)</h3>
+        <div class="canvas-wrapper"><canvas id="ex4"></canvas></div>
+    </div>
+
+    <div class="grafico-container">
+        <h3>5. Barras Empilhadas por Mês (Bug vs Melhoria)</h3>
+        <div class="canvas-wrapper"><canvas id="ex5"></canvas></div>
+    </div>
+
+    <div class="grafico-container">
+        <h3>6. Múltiplas Linhas (Bugs e Melhorias por Mês)</h3>
+        <div class="canvas-wrapper"><canvas id="ex6"></canvas></div>
+    </div>
+
+    <div class="grafico-container">
+        <h3>7. Destruir e Recriar</h3>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <button onclick="criarGraficoEx7('bar')">Barras</button>
+            <button onclick="criarGraficoEx7('doughnut')">Rosca</button>
+        </div>
+        <div class="canvas-wrapper"><canvas id="ex7"></canvas></div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.set("plugins.datalabels", { display: false });
+
+        const dados = [
+            { id: 1, tipo_chamado: "Bug", tempo_gasto: 3.5, data_chamado: "2026-01-15", titulo: "Erro na leitura de CNPJ", categoria_detalhada: "Leitura CNPJ/CPF" },
+            { id: 2, tipo_chamado: "Melhoria", tempo_gasto: 1.0, data_chamado: "2026-01-20", titulo: "Novo campo de impostos", categoria_detalhada: "Impostos" },
+            { id: 3, tipo_chamado: "Bug", tempo_gasto: 5.0, data_chamado: "2026-02-10", titulo: "PDF nao processado", categoria_detalhada: "Erro OCR" },
+            { id: 4, tipo_chamado: "Bug", tempo_gasto: 2.0, data_chamado: "2026-02-15", titulo: "Valor incorreto na nota", categoria_detalhada: "Valor monetario" },
+            { id: 5, tipo_chamado: "Melhoria", tempo_gasto: 0.5, data_chamado: "2026-03-01", titulo: "Melhorar template", categoria_detalhada: "Mapeamento" },
+            { id: 6, tipo_chamado: "Bug", tempo_gasto: 4.0, data_chamado: "2026-03-10", titulo: "CNPJ fornecedor errado", categoria_detalhada: "Leitura CNPJ/CPF" },
+            { id: 7, tipo_chamado: "Bug", tempo_gasto: 1.5, data_chamado: "2026-03-15", titulo: "Aliquota ISS incorreta", categoria_detalhada: "Impostos" },
+            { id: 8, tipo_chamado: "Melhoria", tempo_gasto: 2.0, data_chamado: "2026-04-01", titulo: "Dashboard de monitoramento", categoria_detalhada: "Mapeamento" },
+            { id: 9, tipo_chamado: "Bug", tempo_gasto: 6.0, data_chamado: "2026-04-12", titulo: "Layout novo mapeado", categoria_detalhada: "Erro OCR" },
+            { id: 10, tipo_chamado: "Bug", tempo_gasto: 3.0, data_chamado: "2026-04-20", titulo: "Codigo de barras ilegivel", categoria_detalhada: "Valor monetario" }
+        ];
+
+        function contar(array) {
+            const mapa = {};
+            array.forEach(valor => { if (valor) mapa[valor] = (mapa[valor] || 0) + 1; });
+            return Object.entries(mapa).sort((a, b) => b[1] - a[1]);
+        }
+
+        const catEx1 = contar(dados.map(r => r.categoria_detalhada));
+        new Chart(document.getElementById("ex1"), {
+            type: "bar",
+            data: {
+                labels: catEx1.map(c => c[0]),
+                datasets: [{ label: "Qtd", data: catEx1.map(c => c[1]), backgroundColor: "#3b82f6", borderRadius: 4 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        const tiposEx2 = contar(dados.map(r => r.tipo_chamado));
+        const totalChamados = dados.length;
+        new Chart(document.getElementById("ex2"), {
+            type: "doughnut",
+            data: {
+                labels: tiposEx2.map(t => `${t[0]} (${((t[1] / totalChamados) * 100).toFixed(0)}%)`),
+                datasets: [{ data: tiposEx2.map(t => t[1]), backgroundColor: ["#ef4444", "#10b981"] }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: "right" } }
+            }
+        });
+
+        const horasMes = {};
+        dados.forEach(r => {
+            const m = r.data_chamado.slice(0, 7);
+            horasMes[m] = (horasMes[m] || 0) + r.tempo_gasto;
+        });
+        const mesesEx3 = Object.keys(horasMes).sort();
+        new Chart(document.getElementById("ex3"), {
+            type: "line",
+            data: {
+                labels: mesesEx3,
+                datasets: [{ 
+                    label: "Horas Gastas", 
+                    data: mesesEx3.map(m => horasMes[m]), 
+                    borderColor: "#8b5cf6", 
+                    backgroundColor: "rgba(139, 92, 246, 0.15)", 
+                    fill: true, 
+                    tension: 0.4 
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        const catTempo = {};
+        dados.forEach(r => {
+            if (!catTempo[r.categoria_detalhada]) catTempo[r.categoria_detalhada] = { soma: 0, qtd: 0 };
+            catTempo[r.categoria_detalhada].soma += r.tempo_gasto;
+            catTempo[r.categoria_detalhada].qtd++;
+        });
+        const mediasEx4 = Object.entries(catTempo).map(([n, d]) => ({ nome: n, media: d.soma / d.qtd })).sort((a,b) => b.media - a.media);
+        new Chart(document.getElementById("ex4"), {
+            type: "bar",
+            data: {
+                labels: mediasEx4.map(c => c.nome),
+                datasets: [{ data: mediasEx4.map(c => c.media.toFixed(1)), backgroundColor: "#f59e0b", borderRadius: 4 }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, indexAxis: "y",
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        display: true, color: "#fff", font: { weight: 'bold' },
+                        formatter: function(value) { return value + "h"; }
+                    }
+                }
+            }
+        });
+
+        const porMes = {};
+        dados.forEach(r => {
+            const m = r.data_chamado.slice(0, 7);
+            if (!porMes[m]) porMes[m] = { Bug: 0, Melhoria: 0 };
+            porMes[m][r.tipo_chamado]++;
+        });
+        const mesesEixos = Object.keys(porMes).sort();
+        const bugsMes = mesesEixos.map(m => porMes[m].Bug);
+        const melhoriasMes = mesesEixos.map(m => porMes[m].Melhoria);
+
+        new Chart(document.getElementById("ex5"), {
+            type: "bar",
+            data: {
+                labels: mesesEixos,
+                datasets: [
+                    { label: "Bug", data: bugsMes, backgroundColor: "#ef4444" },
+                    { label: "Melhoria", data: melhoriasMes, backgroundColor: "#6366f1" }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+                plugins: {
+                    datalabels: { display: true, color: "#fff", formatter: v => v > 0 ? v : "" }
+                }
+            }
+        });
+
+        new Chart(document.getElementById("ex6"), {
+            type: "line",
+            data: {
+                labels: mesesEixos,
+                datasets: [
+                    { label: "Bugs", data: bugsMes, borderColor: "#ef4444", backgroundColor: "#ef4444", tension: 0.3 },
+                    { label: "Melhorias", data: melhoriasMes, borderColor: "#6366f1", backgroundColor: "#6366f1", tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        let chartEx7 = null;
+        function criarGraficoEx7(tipo) {
+            const ctx7 = document.getElementById("ex7");
+            if (chartEx7) { chartEx7.destroy(); }
+            
+            chartEx7 = new Chart(ctx7, {
+                type: tipo,
+                data: {
+                    labels: tiposEx2.map(t => t[0]),
+                    datasets: [{ label: "Chamados", data: tiposEx2.map(t => t[1]), backgroundColor: ["#14b8a6", "#f43f5e"] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        
+        criarGraficoEx7('bar');
+    </script>
+</body>
+</html>
